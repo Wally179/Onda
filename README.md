@@ -3,13 +3,15 @@
 > Aplicação bancária simulada desenvolvida em React como exercício técnico de frontend.  
 > Demonstra domínio de arquitetura componentizada, gerenciamento de estado, validação, testes automatizados e design moderno.
 
+**🔗 Link de Produção:** [https://onda-fin.vercel.app/](https://onda-fin.vercel.app/)
+
 ---
 
 ## 📸 Visão Geral
 
-| Login & Cadastro | Dashboard |
-|:-:|:-:|
-| Tabs animadas · Validação Zod | Saldo · Extrato · Filtros · Transferência |
+| Home / Welcome | Login & Cadastro | Dashboard |
+|:-:|:-:|:-:|
+| Disclaimer · Tech Stack | Tabs animadas · Validação Zod | Saldo · Extrato · Busca · Transferência |
 
 ---
 
@@ -36,18 +38,19 @@
 src/
 ├── components/
 │   ├── ui/                    # Primitivos shadcn/ui + StatusBadge (CVA customizado)
-│   ├── TransferModal.tsx      # Modal de transferência com 3 estados
+│   ├── WelcomeModal.tsx       # Disclaimer de site simulado e tech stack
+│   ├── TransferModal.tsx      # Modal de transferência com busca e 3 estados
 │   └── TransferModal.test.tsx # Teste de integração do fluxo
 ├── mocks/
-│   ├── database.ts            # Banco em memória (Repository pattern)
-│   ├── handlers.ts            # Endpoints REST mock (MSW)
+│   ├── database.ts            # Banco em memória (Repository pattern) multi-usuário
+│   ├── handlers.ts            # Endpoints REST mock (MSW) com suporte a IDs de sessão
 │   └── browser.ts             # Setup do Service Worker
 ├── pages/
 │   ├── Auth.tsx               # Login + Cadastro (Tabs animadas)
 │   ├── Dashboard.tsx          # Painel financeiro principal
 │   └── Dashboard.test.tsx     # Testes do dashboard (toggle, filtros)
 ├── routes/
-│   └── index.tsx              # Router com guards (Public/Protected)
+│   └── index.tsx              # Router com RootLayout e guards (Public/Protected)
 ├── services/
 │   └── api.ts                 # Axios com interceptors JWT
 ├── store/
@@ -91,35 +94,25 @@ npx vitest run
 | CPF   | `12345678909` |
 | Senha | `123456` |
 
-### Cadastro de novo usuário
-1. Na tela de autenticação, clique na aba **"Criar Conta"**
-2. Preencha Nome, CPF, Senha e Confirmação
-3. Ao cadastrar, será redirecionado automaticamente para a aba de Login
-4. Faça login com as credenciais recém-criadas
+### Cadastro e Transferência Multi-Usuário
+1. **Crie a conta da "Alice"**: Vá em "Criar Conta" e cadastre. Ela ganha **R$ 1.500,00** de bônus.
+2. **Crie a conta do "Bob"**: Alice agora pode transferir para ele.
+3. **Busca de Destinatário**: No Dashboard da Alice, clique em **"Transferir"** e digite "Bob". O sistema buscará o Bob no banco em memória.
+4. **Transferência Real**: Envie R$ 500. O saldo da Alice cai; o do Bob sobe.
+5. **Verificação**: Logue como Bob e veja o extrato com o recebimento da Alice.
 
 > ⚠️ **Nota:** Todos os dados (usuários, saldo, transações) são armazenados em memória volátil.  
 > Um simples **F5** reseta o estado ao original — ideal para demonstração e testes sem efeitos colaterais.
-
-### Transferências
-1. No Dashboard, clique em **"Transferir"**
-2. Preencha favorecido e valor → o saldo será deduzido em tempo real
-3. A transação aparecerá instantaneamente no extrato
 
 ---
 
 ## 🏛️ Decisões Técnicas
 
-### Mock Service Worker (MSW)
-Optamos por interceptar requisições **ao nível de rede** em vez de mockar o Axios diretamente. Isso garante que:
-- Os interceptors de autenticação são exercitados normalmente
-- A aplicação não tem nenhum código condicional de mock em produção
-- Os testes end-to-end podem reutilizar os mesmos handlers
+### Mock Service Worker (MSW) e Banco Em-Memória
+Diferente de um mock estático, implementamos uma lógica de **Banco de Dados Per-Usuário**. Cada usuário autenticado possui sua própria chave no estado (`balances` e `userTransactions`), permitindo que transferências cruzadas funcionem como em um backend real.
 
-### Banco Em-Memória (`mocks/database.ts`)
-Separa a lógica de persistência dos handlers HTTP seguindo o **Repository Pattern**. Funções puras (`findUserByDocument`, `debitBalance`, `addTransaction`) facilitam testes unitários e manutenção.
-
-### Zustand com Persist
-O estado de autenticação sobrevive a reloads (via `localStorage`), simulando a experiência real de sessão persistente. O middleware `persist` é configurado automaticamente.
+### RootLayout e Welcome Modal
+Adicionamos um aviso de transparência (`WelcomeModal`) que aparece em cada reinicialização da página. Isso garante que o avaliador entenda imediatamente que o site é uma simulação técnica e conheça as tecnologias por trás do projeto.
 
 ### Validação com Zod
 Schemas de validação são declarados como **single source of truth** — a tipagem TypeScript é inferida automaticamente via `z.infer<>`, eliminando duplicação entre tipos e regras de negócio.
@@ -136,22 +129,17 @@ Conforme solicitado nos requisitos, abaixo estão as estratégias de proteção 
 |---------|-----------|
 | **Minificação e Tree-shaking** | O build de produção do Vite (Rollup) minifica nomes de variáveis, funções e classes, dificultando a leitura do bundle final. Componentes não utilizados são removidos automaticamente. |
 | **Code Splitting** | Rotas protegidas são carregadas via lazy loading (React Router), impedindo que código do dashboard seja exposto a usuários não autenticados no bundle inicial. |
-| **Source Maps desabilitados** | Em produção, source maps devem ser desabilitados (`build.sourcemap: false` no `vite.config.ts`), impedindo a reconstrução do código-fonte original via DevTools. |
-| **Obfuscação (opcional)** | Para ambientes de maior risco, ferramentas como `vite-plugin-obfuscator` ou `terser` com `mangle` agressivo podem ser integradas ao pipeline de build. |
-| **Variáveis de ambiente** | Secrets nunca são expostos no client-side. O `import.meta.env` do Vite só expõe variáveis prefixadas com `VITE_`, e nenhum segredo real está no bundle. |
+| **Source Maps desabilitados** | Em produção, source maps são desabilitados, impedindo a reconstrução do código-fonte original via DevTools. |
+| **Variáveis de ambiente** | Segredos nunca são expostos no client-side. O `import.meta.env` do Vite só expõe variáveis prefixadas com `VITE_`. |
 
 ### Vazamento de Dados
 
 | Técnica | Descrição |
 |---------|-----------|
-| **XSS** | React escapa JSX por padrão. Não utilizamos `dangerouslySetInnerHTML` em nenhum ponto da aplicação. Inputs validados com Zod no client e no mock server. |
-| **Token JWT** | Armazenado em Zustand com persist (localStorage). Em produção, recomenda-se migrar para `httpOnly cookies` gerenciados pelo backend para impedir acesso via JavaScript. |
-| **Interceptor 401** | O Axios intercepta respostas 401 automaticamente, fazendo logout e limpando tokens/dados do estado — impede sessões fantasma. |
-| **Sanitização de inputs** | Zod valida e normaliza dados antes do envio. CPFs são limpos (`replace(/\D/g, '')`) antes de trafegar pela rede. |
-| **CORS** | Em produção, o backend configuraria headers `Access-Control-Allow-Origin` restritos. No ambiente mock (MSW), não há exposição real de rede. |
-| **HTTPS** | A aplicação na Vercel é servida exclusivamente via HTTPS com certificado TLS gerenciado automaticamente. |
-
-> 💡 **Nota:** Como se trata de um mock frontend, estas estratégias são **documentativas**. Em uma aplicação real com backend, adicionar-se-iam: rate limiting, WAF, Content Security Policy (CSP), e auditoria de dependências via `npm audit`.
+| **XSS** | React escapa JSX por padrão. Não utilizamos `dangerouslySetInnerHTML`. Inputs validados com Zod no client e no mock server. |
+| **Token JWT** | Armazenado em Zustand com persist (localStorage). Em produção, recomenda-se migrar para `httpOnly cookies`. |
+| **Interceptor 401** | O Axios intercepta respostas 401 automaticamente, fazendo logout e limpando tokens/dados do estado. |
+| **HTTPS** | A aplicação na Vercel é servida exclusivamente via HTTPS com certificado TLS. |
 
 ---
 
@@ -173,15 +161,19 @@ npx vitest run
 
 ## 🔮 Melhorias Futuras
 
-Funcionalidades e melhorias que seriam implementadas com mais tempo de desenvolvimento:
+Funcionalidades que seriam implementadas em uma fase futura:
 
-| Área | Melhoria |
-|------|----------|
-| **Autenticação** | Refresh token com rotação automática, 2FA via SMS/TOTP |
-| **Dashboard** | Gráficos de gastos por categoria (Recharts/Nivo), extrato paginado com scroll infinito |
-| **Transferência** | Agendamento de transferências, favoritos, comprovante em PDF |
-| **UX** | Tema escuro (dark mode), PWA com offline support, notificações push |
-| **Testes** | Cobertura de 80%+, testes E2E com Playwright, testes de acessibilidade (axe-core) |
+- **Autenticação**: Refresh token com rotação automática, 2FA via SMS/TOTP.
+- **Gráficos**: Visualização de gastos por categoria (Recharts/Nivo).
+- **Comprovantes**: Geração de comprovante de transferência em PDF.
+- **PWA**: Suporte offline e manifesto para instalação em dispositivos.
+
+---
+
+## 📄 Licença
+
+Projeto desenvolvido para fins de avaliação técnica.
+stes E2E com Playwright, testes de acessibilidade (axe-core) |
 | **Infra** | CI/CD com GitHub Actions, análise estática com ESLint strict, Husky + lint-staged |
 | **Backend** | Migração do MSW para API real (Node.js + Prisma + PostgreSQL) |
 | **Segurança** | CSP headers, rate limiting, auditoria automatizada de dependências |

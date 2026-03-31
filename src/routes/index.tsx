@@ -1,7 +1,19 @@
-import { createBrowserRouter, Navigate } from 'react-router-dom'
+import { createBrowserRouter, Navigate, Outlet } from 'react-router-dom'
 import { useAuthStore } from '@/store/useAuthStore'
 import { Auth } from '@/pages/Auth'
 import { Dashboard } from '@/pages/Dashboard'
+import { WelcomeModal } from '@/components/WelcomeModal'
+
+// ─── Shared Layout ───────────────────────────────────────────────────
+
+function RootLayout() {
+  return (
+    <>
+      <WelcomeModal />
+      <Outlet />
+    </>
+  )
+}
 
 // ─── Guards ────────────────────────────────────────────────────────────
 
@@ -21,11 +33,17 @@ function PublicRoute({ children }: { children: React.ReactNode }) {
 
 export const router = createBrowserRouter([
   {
-    path: '/login',
-    element: <PublicRoute><Auth /></PublicRoute>,
-  },
-  {
     path: '/',
-    element: <ProtectedRoute><Dashboard /></ProtectedRoute>,
+    element: <RootLayout />,
+    children: [
+      {
+        index: true,
+        element: <ProtectedRoute><Dashboard /></ProtectedRoute>,
+      },
+      {
+        path: 'login',
+        element: <PublicRoute><Auth /></PublicRoute>,
+      },
+    ]
   },
 ])
