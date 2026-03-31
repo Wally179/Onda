@@ -1,0 +1,88 @@
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap');
+
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  :root {
+    --background: 210 40% 98%;
+    --foreground: 222.2 84% 4.9%;
+    --card: 0 0% 100%;
+    --card-foreground: 222.2 84% 4.9%;
+    --popover: 0 0% 100%;
+    --popover-foreground: 222.2 84% 4.9%;
+    --primary: 200 75% 75%;
+    --primary-foreground: 200 50% 15%;
+    --secondary: 210 40% 96.1%;
+    --secondary-foreground: 222.2 47.4% 11.2%;
+    --muted: 210 40% 94%;
+    --muted-foreground: 215.4 16.3% 46.9%;
+    --accent: 200 60% 92%;
+    --accent-foreground: 222.2 47.4% 11.2%;
+    --destructive: 0 84.2% 60.2%;
+    --destructive-foreground: 210 40% 98%;
+    --border: 214.3 31.8% 91.4%;
+    --input: 214.3 31.8% 91.4%;
+    --ring: 200 75% 65%;
+    --radius: 1rem;
+  }
+}
+
+@layer base {
+  * {
+    @apply border-border;
+  }
+  body {
+    @apply bg-slate-50 text-foreground antialiased;
+    font-family: 'Inter', sans-serif;
+  }
+}
+
+@layer utilities {
+  .glass {
+    @apply bg-white/70 backdrop-blur-md border border-white/20 shadow-sm;
+  }
+  .glass-card {
+    @apply bg-white/60 backdrop-blur-xl border border-white/50 shadow-[0_8px_30px_rgb(0,0,0,0.04)];
+  }
+  .glass-panel {
+    @apply bg-blue-50/40 backdrop-blur-2xl border border-white/60 shadow-[0_8px_32px_rgb(137,207,240,0.15)];
+  }
+  
+  /* Decorative Background Blobs */
+  .bg-blobs {
+    position: relative;
+    overflow: hidden;
+    background-color: #f8fafc;
+  }
+  
+  .bg-blobs::before, .bg-blobs::after {
+    content: '';
+    position: absolute;
+    width: 600px;
+    height: 600px;
+    border-radius: 50%;
+    filter: blur(80px);
+    z-index: 0;
+    opacity: 0.6;
+    pointer-events: none;
+  }
+  
+  .bg-blobs::before {
+    top: -100px;
+    right: -100px;
+    background: radial-gradient(circle, rgba(137,207,240,0.4) 0%, rgba(137,207,240,0) 70%);
+  }
+  
+  .bg-blobs::after {
+    bottom: -100px;
+    left: -100px;
+    background: radial-gradient(circle, rgba(167,139,250,0.2) 0%, rgba(137,207,240,0) 70%);
+  }
+
+  .content-z {
+    position: relative;
+    z-index: 10;
+  }
+}
