@@ -91,13 +91,13 @@ npx vitest run
 ### Credenciais padrão (pré-cadastradas)
 | Campo | Valor |
 |-------|-------|
-| CPF   | `12345678909` |
+| Email | `joao@onda.com.br` |
 | Senha | `123456` |
 
 ### Cadastro e Transferência Multi-Usuário
-1. **Crie a conta da "Alice"**: Vá em "Criar Conta" e cadastre. Ela ganha **R$ 1.500,00** de bônus.
-2. **Crie a conta do "Bob"**: Alice agora pode transferir para ele.
-3. **Busca de Destinatário**: No Dashboard da Alice, clique em **"Transferir"** e digite "Bob". O sistema buscará o Bob no banco em memória.
+1. **Crie a conta da "Alice"**: Vá em "Criar Conta" e cadastre usando um email (ex: `alice@email.com`). Ela ganha **R$ 1.500,00** de bônus.
+2. **Crie a conta do "Bob"**: Cadastre o Bob com outro email.
+3. **Busca de Destinatário**: No Dashboard da Alice, clique em **"Transferir"** e digite o email do Bob. O sistema buscará o Bob no banco em memória.
 4. **Transferência Real**: Envie R$ 500. O saldo da Alice cai; o do Bob sobe.
 5. **Verificação**: Logue como Bob e veja o extrato com o recebimento da Alice.
 

@@ -1,7 +1,7 @@
 import { http, HttpResponse, delay } from 'msw'
 import type { LoginPayload, RegisterPayload, TransferPayload } from '../types'
 import {
-  findUserByDocument,
+  findUserByEmail,
   registerUser,
   getBalance,
   debitBalance,
@@ -40,13 +40,13 @@ export const handlers = [
     const body = (await request.json()) as LoginPayload
     await delay(800)
 
-    const user = findUserByDocument(body.document)
+    const user = findUserByEmail(body.email)
     if (!user || user.password !== body.password) {
-      return errorResponse('CPF ou senha incorretos', 401)
+      return errorResponse('Email ou senha incorretos', 401)
     }
 
     return HttpResponse.json({
-      user: { id: user.id, name: user.name, document: user.document },
+      user: { id: user.id, name: user.name, email: user.email },
       token: generateToken(user.id),
     })
   }),
@@ -56,14 +56,14 @@ export const handlers = [
     const body = (await request.json()) as RegisterPayload
     await delay(1000)
 
-    if (findUserByDocument(body.document)) {
-      return errorResponse('CPF já cadastrado no sistema', 409)
+    if (findUserByEmail(body.email)) {
+      return errorResponse('Email já cadastrado no sistema', 409)
     }
 
-    const user = registerUser(body.name, body.document, body.password)
+    const user = registerUser(body.name, body.email, body.password)
 
     return HttpResponse.json(
-      { user: { id: user.id, name: user.name, document: user.document } },
+      { user: { id: user.id, name: user.name, email: user.email } },
       { status: 201 },
     )
   }),

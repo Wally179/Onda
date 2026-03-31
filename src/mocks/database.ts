@@ -10,7 +10,7 @@ const NEW_USER_BONUS = 1500.00
 const SEED_USER: StoredUser = {
   id: '1',
   name: 'João Banco',
-  document: '12345678909',
+  email: 'joao@onda.com.br',
   password: '123456',
 }
 
@@ -30,8 +30,8 @@ let nextId = 2
 
 // ─── Repositories (funções puras de acesso) ────────────────────────────
 
-export function findUserByDocument(document: string): StoredUser | undefined {
-  return users.find(u => u.document === document)
+export function findUserByEmail(email: string): StoredUser | undefined {
+  return users.find(u => u.email === email)
 }
 
 export function findUserById(id: string): StoredUser | undefined {
@@ -45,16 +45,16 @@ export function searchUsers(query: string, excludeId?: string): User[] {
   return users
     .filter(u => 
       u.id !== excludeId && 
-      (u.name.toLowerCase().includes(cleanQuery) || u.document.includes(cleanQuery))
+      (u.name.toLowerCase().includes(cleanQuery) || u.email.toLowerCase().includes(cleanQuery))
     )
-    .map(({ id, name, document }) => ({ id, name, document }))
+    .map(({ id, name, email }) => ({ id, name, email }))
 }
 
-export function registerUser(name: string, document: string, password: string): StoredUser {
+export function registerUser(name: string, email: string, password: string): StoredUser {
   const user: StoredUser = {
     id: String(nextId++),
     name,
-    document,
+    email,
     password,
   }
   users.push(user)

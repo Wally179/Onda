@@ -3,7 +3,7 @@
 export interface User {
   id: string
   name: string
-  document: string
+  email: string
 }
 
 export interface StoredUser extends User {
@@ -22,13 +22,13 @@ export interface Transaction {
 // ─── Payloads de Requisição ────────────────────────────────────────────
 
 export interface LoginPayload {
-  document: string
+  email: string
   password: string
 }
 
 export interface RegisterPayload {
   name: string
-  document: string
+  email: string
   password: string
 }
 

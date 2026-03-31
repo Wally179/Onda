@@ -233,7 +233,7 @@ export function TransferModal() {
                   <UnderlineField
                     id="receiverName"
                     label="Para quem"
-                    placeholder="Nome, CPF ou Chave Pix"
+                    placeholder="Nome ou Email"
                     registration={register('receiverName')}
                     error={errors.receiverName?.message}
                     icon={receiverId ? UserIcon : Search}
@@ -264,7 +264,7 @@ export function TransferModal() {
                               </div>
                               <div>
                                 <p className="text-sm font-bold text-slate-800">{user.name}</p>
-                                <p className="text-[10px] text-slate-400 font-medium">CPF: {user.document.replace(/(\d{3})(\d{3})(\d{3})(\d{2})/, '$1.$2.$3-$4')}</p>
+                                <p className="text-[10px] text-slate-400 font-medium">{user.email}</p>
                               </div>
                             </button>
                           ))}

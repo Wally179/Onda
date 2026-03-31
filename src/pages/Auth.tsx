@@ -12,13 +12,13 @@ import type { AuthResponse } from '@/types'
 // ─── Schemas ───────────────────────────────────────────────────────────
 
 const loginSchema = z.object({
-  document: z.string().min(11, 'CPF inválido').max(14, 'CPF inválido'),
+  email: z.string().email('Email inválido'),
   password: z.string().min(6, 'Mínimo 6 caracteres'),
 })
 
 const registerSchema = z.object({
   name: z.string().min(3, 'Nome muito curto'),
-  document: z.string().min(11, 'CPF inválido').max(14, 'CPF inválido'),
+  email: z.string().email('Email inválido'),
   password: z.string().min(6, 'Mínimo 6 caracteres'),
   confirmPassword: z.string(),
 }).refine(d => d.password === d.confirmPassword, {
@@ -82,7 +82,7 @@ export function Auth() {
   const handleLogin = async (data: LoginForm) => {
     try {
       const res = await api.post<AuthResponse>('/login', {
-        document: data.document.replace(/\D/g, ''),
+        email: data.email,
         password: data.password,
       })
       login(res.data.user, res.data.token)
@@ -100,7 +100,7 @@ export function Auth() {
     try {
       await api.post('/register', {
         name: data.name,
-        document: data.document.replace(/\D/g, ''),
+        email: data.email,
         password: data.password,
       })
       toast.success('Conta criada! Faça login para continuar.')
@@ -179,9 +179,9 @@ export function Auth() {
 
                   <form onSubmit={loginForm.handleSubmit(handleLogin)} className="space-y-6">
                     <Field
-                      id="login-document" label="CPF" placeholder="123.456.789-09"
-                      registration={loginForm.register('document')}
-                      error={loginForm.formState.errors.document?.message}
+                      id="login-email" label="Email" type="email" placeholder="seu@email.com"
+                      registration={loginForm.register('email')}
+                      error={loginForm.formState.errors.email?.message}
                     />
                     <Field
                       id="login-password" label="Senha" type="password" placeholder="••••••"
@@ -205,7 +205,7 @@ export function Auth() {
                   </form>
 
                   <p className="text-center text-[11px] text-slate-300 mt-6 font-medium tracking-wide">
-                    DEMO &middot; CPF 12345678909 &middot; Senha 123456
+                    DEMO &middot; joao@onda.com.br &middot; Senha 123456
                   </p>
                 </motion.div>
               ) : (
@@ -228,9 +228,9 @@ export function Auth() {
                       error={registerForm.formState.errors.name?.message}
                     />
                     <Field
-                      id="reg-document" label="CPF" placeholder="123.456.789-09"
-                      registration={registerForm.register('document')}
-                      error={registerForm.formState.errors.document?.message}
+                      id="reg-email" label="Email" type="email" placeholder="seu@email.com"
+                      registration={registerForm.register('email')}
+                      error={registerForm.formState.errors.email?.message}
                     />
                     <Field
                       id="reg-password" label="Senha" type="password" placeholder="Mínimo 6 caracteres"
@@ -266,3 +266,4 @@ export function Auth() {
     </div>
   )
 }
+

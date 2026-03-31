@@ -68,7 +68,7 @@ export function WelcomeModal() {
                   <li className="flex gap-2.5 text-xs text-slate-700 bg-blue-100/30 p-2 rounded-lg border border-blue-100/50">
                     <Info className="w-3.5 h-3.5 text-primary shrink-0 mt-0.5" />
                     <span className="text-[11px] leading-snug">
-                      <span className="font-bold">Dica de Teste:</span> Use o CPF <code className="bg-white px-1 rounded border border-blue-100 font-bold">12345678909</code> e senha <code className="bg-white px-1 rounded border border-blue-100 font-bold">123456</code>.
+                      <span className="font-bold">Dica de Teste:</span> Use o Email <code className="bg-white px-1 rounded border border-blue-100 font-bold">joao@onda.com.br</code> e senha <code className="bg-white px-1 rounded border border-blue-100 font-bold">123456</code>.
                     </span>
                   </li>
                 </ul>
