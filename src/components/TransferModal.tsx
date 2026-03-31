@@ -30,11 +30,11 @@ function UnderlineField({
 }) {
   return (
     <div className="space-y-1">
-      <label htmlFor={id} className="block text-[11px] font-bold tracking-[0.12em] uppercase text-slate-400">
+      <label htmlFor={id} className="block text-[11px] font-bold tracking-[0.12em] uppercase text-slate-500">
         {label}
       </label>
       <div className="relative flex items-center">
-        {prefix && <span className="text-slate-400 text-sm font-semibold mr-1 shrink-0">{prefix}</span>}
+        {prefix && <span className="text-slate-500 text-sm font-bold mr-1 shrink-0">{prefix}</span>}
         <input
           id={id}
           type={type}
