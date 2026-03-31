@@ -1,10 +1,11 @@
-import type { StoredUser, Transaction } from '../types'
+import type { StoredUser, Transaction, User } from '../types'
 
 // ─── Estado Em-Memória (reseta no F5) ──────────────────────────────────
 // Funciona como um "banco de dados" volátil para simulação de fluxos.
 // Toda a memória é destruída quando o Service Worker reinicia (reload).
 
 const INITIAL_BALANCE = 14500.00
+const NEW_USER_BONUS = 1500.00
 
 const SEED_USER: StoredUser = {
   id: '1',
@@ -23,14 +24,30 @@ const SEED_TRANSACTIONS: Transaction[] = [
 // ─── Runtime State ─────────────────────────────────────────────────────
 
 let users: StoredUser[] = [{ ...SEED_USER }]
-let balance = INITIAL_BALANCE
-let transactions: Transaction[] = [...SEED_TRANSACTIONS]
+let balances: Record<string, number> = { '1': INITIAL_BALANCE }
+let userTransactions: Record<string, Transaction[]> = { '1': [...SEED_TRANSACTIONS] }
 let nextId = 2
 
 // ─── Repositories (funções puras de acesso) ────────────────────────────
 
 export function findUserByDocument(document: string): StoredUser | undefined {
   return users.find(u => u.document === document)
+}
+
+export function findUserById(id: string): StoredUser | undefined {
+  return users.find(u => u.id === id)
+}
+
+export function searchUsers(query: string, excludeId?: string): User[] {
+  const cleanQuery = query.toLowerCase().trim()
+  if (!cleanQuery) return []
+
+  return users
+    .filter(u => 
+      u.id !== excludeId && 
+      (u.name.toLowerCase().includes(cleanQuery) || u.document.includes(cleanQuery))
+    )
+    .map(({ id, name, document }) => ({ id, name, document }))
 }
 
 export function registerUser(name: string, document: string, password: string): StoredUser {
@@ -41,25 +58,43 @@ export function registerUser(name: string, document: string, password: string): 
     password,
   }
   users.push(user)
+  balances[user.id] = NEW_USER_BONUS
+  userTransactions[user.id] = [
+    { 
+      id: Math.random().toString(36).slice(2), 
+      type: 'INCOME', 
+      category: 'other', 
+      amount: NEW_USER_BONUS, 
+      date: new Date().toISOString(), 
+      description: 'Bônus de Boas-vindas' 
+    }
+  ]
   return user
 }
 
-export function getBalance(): number {
-  return balance
+export function getBalance(userId: string): number {
+  return balances[userId] ?? 0
 }
 
-export function debitBalance(amount: number): boolean {
-  if (amount > balance) return false
-  balance -= amount
+export function debitBalance(userId: string, amount: number): boolean {
+  const current = balances[userId] ?? 0
+  if (amount > current) return false
+  balances[userId] = current - amount
   return true
 }
 
-export function getTransactions(): Transaction[] {
-  return transactions
+export function creditBalance(userId: string, amount: number): void {
+  const current = balances[userId] ?? 0
+  balances[userId] = current + amount
 }
 
-export function addTransaction(tx: Omit<Transaction, 'id'>): Transaction {
+export function getTransactions(userId: string): Transaction[] {
+  return userTransactions[userId] ?? []
+}
+
+export function addTransaction(userId: string, tx: Omit<Transaction, 'id'>): Transaction {
   const full: Transaction = { ...tx, id: Math.random().toString(36).slice(2) }
-  transactions.unshift(full)
+  if (!userTransactions[userId]) userTransactions[userId] = []
+  userTransactions[userId].unshift(full)
   return full
 }

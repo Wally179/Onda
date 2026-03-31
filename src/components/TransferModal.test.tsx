@@ -25,6 +25,7 @@ const renderWithClient = (ui: React.ReactElement) => {
 
 describe('TransferModal (Fluxo de Transferência)', () => {
   it('deve renderizar o modal quando clicar no botão e executar transferência', async () => {
+    mockApi.onGet('/users').reply(200, [])
     mockApi.onPost('/account/transfer').reply(200, { success: true })
     const user = userEvent.setup()
 
@@ -50,7 +51,7 @@ describe('TransferModal (Fluxo de Transferência)', () => {
     // Verifica mock
     await waitFor(() => {
       expect(mockApi.history.post.length).toBe(1)
-      expect(JSON.parse(mockApi.history.post[0].data)).toEqual({
+      expect(JSON.parse(mockApi.history.post[0].data)).toMatchObject({
         receiverName: 'Maria da Silva',
         amount: 150
       })

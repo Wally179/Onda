@@ -35,6 +35,7 @@ export interface RegisterPayload {
 export interface TransferPayload {
   receiverName: string
   amount: number
+  receiverId?: string
 }
 
 // ─── Respostas da API ──────────────────────────────────────────────────

@@ -7,6 +7,9 @@ import {
   debitBalance,
   getTransactions,
   addTransaction,
+  searchUsers,
+  creditBalance,
+  findUserById,
 } from './database'
 
 // ─── Helpers ───────────────────────────────────────────────────────────
@@ -20,6 +23,12 @@ function errorResponse(message: string, status: number) {
 
 function generateToken(userId: string): string {
   return `mock-jwt-${userId}-${Date.now().toString(36)}`
+}
+
+function getUserIdFromRequest(request: Request): string | null {
+  const auth = request.headers.get('Authorization')
+  if (!auth || !auth.startsWith('Bearer mock-jwt-')) return null
+  return auth.split('-')[2] // Extrai o ID do token mock: mock-jwt-{ID}-{TIMESTAMP}
 }
 
 // ─── Handlers ──────────────────────────────────────────────────────────
@@ -59,28 +68,49 @@ export const handlers = [
     )
   }),
 
+  // ── Users: Busca ───────────────────────────────────────────────────
+  http.get('/api/users', async ({ request }) => {
+    const url = new URL(request.url)
+    const q = url.searchParams.get('q') || ''
+    const currentUserId = getUserIdFromRequest(request)
+
+    await delay(300)
+    return HttpResponse.json(searchUsers(q, currentUserId || undefined))
+  }),
+
   // ── Account: Saldo ─────────────────────────────────────────────────
-  http.get('/api/account/balance', async () => {
+  http.get('/api/account/balance', async ({ request }) => {
+    const userId = getUserIdFromRequest(request)
+    if (!userId) return errorResponse('Não autorizado', 401)
+
     await delay(400)
-    return HttpResponse.json({ balance: getBalance() })
+    return HttpResponse.json({ balance: getBalance(userId) })
   }),
 
   // ── Account: Extrato ───────────────────────────────────────────────
-  http.get('/api/account/transactions', async () => {
+  http.get('/api/account/transactions', async ({ request }) => {
+    const userId = getUserIdFromRequest(request)
+    if (!userId) return errorResponse('Não autorizado', 401)
+
     await delay(600)
-    return HttpResponse.json(getTransactions())
+    return HttpResponse.json(getTransactions(userId))
   }),
 
   // ── Account: Transferência ─────────────────────────────────────────
   http.post('/api/account/transfer', async ({ request }) => {
+    const userId = getUserIdFromRequest(request)
+    if (!userId) return errorResponse('Não autorizado', 401)
+
     const body = (await request.json()) as TransferPayload
     await delay(1200)
 
-    if (!debitBalance(body.amount)) {
+    // 1. Debita o remetente
+    if (!debitBalance(userId, body.amount)) {
       return errorResponse('Saldo insuficiente na conta', 400)
     }
 
-    const transaction = addTransaction({
+    // 2. Registra transação de saída
+    const senderTx = addTransaction(userId, {
       type:        'EXPENSE',
       category:    'transfer_out',
       amount:      body.amount,
@@ -88,6 +118,19 @@ export const handlers = [
       description: `Pix Enviado (${body.receiverName})`,
     })
 
-    return HttpResponse.json({ success: true, transaction })
+    // 3. Se houver receiverId, credita o destinatário
+    if (body.receiverId) {
+      const sender = findUserById(userId)
+      creditBalance(body.receiverId, body.amount)
+      addTransaction(body.receiverId, {
+        type:        'INCOME',
+        category:    'transfer_in',
+        amount:      body.amount,
+        date:        new Date().toISOString(),
+        description: `Pix Recebido de ${sender?.name || 'Usuário'}`,
+      })
+    }
+
+    return HttpResponse.json({ success: true, transaction: senderTx })
   }),
 ]
